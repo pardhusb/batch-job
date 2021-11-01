@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="batch-jobFlow" doc:id="783610d7-56aa-410f-a5cd-dbfcdafd9786" >
+		<scheduler doc:name="Scheduler" doc:id="84b95f58-facd-499e-a768-000559613f31" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="2" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<ee:transform doc:name="Transform Message" doc:id="1aad7f71-3426-4b3c-901c-d5f2c8491ebe" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+1 to 1000]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<batch:job jobName="batch-jobBatch_Job" doc:id="4b599161-b6a6-4b1f-868a-b8451a283fba" >
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="a8d254f2-48b0-494e-ba42-6334beef31cf" >
+					<logger level="INFO" doc:name="Logger" doc:id="255e3fdc-2b7d-4fef-ae39-332e9d8a3499" message="#[payload]"/>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="01fd53f6-ce01-459f-855b-3667d1541510" size="10">
+						<logger level="INFO" doc:name="Logger" doc:id="fa9bb8c3-b1cd-4cd0-961b-a44034f1e312" message="#[payload]"/>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<ee:transform doc:name="Transform Message" doc:id="da1b6544-d7ef-49b8-9d99-47cae01fb086" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="5d137b68-f4da-48cd-9aed-c3d1bf906dc6" message="#[payload]"/>
+			</batch:on-complete>
+		</batch:job>
+	</flow>
+</mule>
